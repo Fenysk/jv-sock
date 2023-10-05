@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Game {
+  id            Int      @id @default(autoincrement())
+  name          String
+  console       String
+  edition       String
+  region        String
+  released_year Int
+  barcode_data  String
+  created_at    DateTime @default(now())
+  updated_at    DateTime @default(now()) @updatedAt
+
+  Purchase Purchase[] @relation("GamePurchases")
+  Sale     Sale[]     @relation("GameSales")
+}
+
+model Purchase {
+  id              Int      @id @default(autoincrement())
+  game_id         Int
+  purchased_price Float
+  estimated_price Float
+  origin          String
+  state           String
+  content         String[]
+  created_at      DateTime @default(now())
+  updated_at      DateTime @default(now()) @updatedAt
+
+  game Game @relation("GamePurchases", fields: [game_id], references: [id])
+
+  sale Sale? @relation("GameSale")
+
+  @@unique([id, game_id])
+}
+
+model Sale {
+  id           Int      @id @default(autoincrement())
+  game_id      Int
+  purchase_id  Int      @unique
+  solded_price Float
+  created_at   DateTime @default(now())
+  updated_at   DateTime @default(now()) @updatedAt
+
+  purchase Purchase @relation("GameSale", fields: [purchase_id, game_id], references: [id, game_id])
+
+  game     Game     @relation("GameSales", fields: [game_id], references: [id])
+
+  @@unique([purchase_id, game_id])
+}
