@@ -15,6 +15,18 @@ export class PurchaseService {
         return purchases;
     }
 
+    async getPurchasesInStock() {
+        const purchases = await this.prismaService.purchase.findMany({
+            where: { sale: null },
+        });
+        
+        if (!purchases.length) {
+            throw new NotFoundException('No purchases found');
+        }
+
+        return purchases;
+    }
+
     async getPurchaseById(id: number) {
         const purchase = await this.prismaService.purchase.findUnique({
             where: { id },

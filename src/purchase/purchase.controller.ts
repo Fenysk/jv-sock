@@ -11,6 +11,11 @@ export class PurchaseController {
         return this.purchaseService.getAllPurchases();
     }
 
+    @Get('get/stock')
+    getPurchasesInStock() {
+        return this.purchaseService.getPurchasesInStock();
+    }
+
     @Get('get/:id')
     getPurchaseById(@Param('id') id: string) {
         return this.purchaseService.getPurchaseById(Number(id));

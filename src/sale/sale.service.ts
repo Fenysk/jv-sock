@@ -46,8 +46,6 @@ export class SaleService {
     }
 
     async updateSoldedPrice(id: number, solded_price: any) {
-        
-        console.log(solded_price);
 
         const updatedSale = await this.prismaService.sale.update({
             where: { id: id },
