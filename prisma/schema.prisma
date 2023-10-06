@@ -18,8 +18,7 @@ model Game {
   created_at    DateTime @default(now())
   updated_at    DateTime @default(now()) @updatedAt
 
-  Purchase Purchase[] @relation("GamePurchases")
-  Sale     Sale[]     @relation("GameSales")
+  Purchases Purchase[] @relation("Game_1-N_Purchase")
 }
 
 model Purchase {
@@ -33,24 +32,18 @@ model Purchase {
   created_at      DateTime @default(now())
   updated_at      DateTime @default(now()) @updatedAt
 
-  game Game @relation("GamePurchases", fields: [game_id], references: [id])
-
-  sale Sale? @relation("GameSale")
-
-  @@unique([id, game_id])
+  Sale Sale? @relation("Sale_0/1-1_Purchase")
+  Game Game  @relation("Game_1-N_Purchase", fields: [game_id], references: [id])
 }
 
 model Sale {
   id           Int      @id @default(autoincrement())
-  game_id      Int
-  purchase_id  Int      @unique
+  purchase_id  Int
   solded_price Float
   created_at   DateTime @default(now())
   updated_at   DateTime @default(now()) @updatedAt
 
-  purchase Purchase @relation("GameSale", fields: [purchase_id, game_id], references: [id, game_id])
+  Purchase Purchase? @relation("Sale_0/1-1_Purchase", fields: [purchase_id], references: [id], onDelete: Cascade)
 
-  game     Game     @relation("GameSales", fields: [game_id], references: [id])
-
-  @@unique([purchase_id, game_id])
+  @@unique([purchase_id])
 }

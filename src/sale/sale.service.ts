@@ -10,9 +10,17 @@ export class SaleService {
     ) { }
 
     async getAllSales() {
-        const sales = await this.prismaService.sale.findMany({});
+        let sales = await this.prismaService.sale.findMany({
+            include: {
+                Purchase: {
+                    include : {
+                        Game: true
+                    }
+                }
+            }
+        });
 
-        if (!sales) {
+        if (!sales.length) {
             throw new NotFoundException('No sales found');
         }
 
@@ -31,15 +39,10 @@ export class SaleService {
         return sale;
     }
 
-    async createSale(sale) {
-
-        const purchase = await this.purchaseService.getPurchaseById(sale.purchase_id);
+    async createSale(data) {
 
         const createdSale = await this.prismaService.sale.create({
-            data: {
-                ...sale,
-                game_id: purchase.game_id,
-            }
+            data
         });
 
         return createdSale;

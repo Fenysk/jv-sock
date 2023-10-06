@@ -11,6 +11,11 @@ export class GameController {
         return this.gameService.getAllGames();
     }
 
+    @Get('get/stock')
+    getGamesInStock() {
+        return this.gameService.getGamesInStock();
+    }
+
     @Get('get/:id')
     getGameById(@Param('id') id: string) {
         return this.gameService.getGameById(Number(id));

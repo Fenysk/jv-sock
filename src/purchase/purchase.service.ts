@@ -6,20 +6,13 @@ export class PurchaseService {
     constructor(private readonly prismaService: PrismaService) { }
 
     async getAllPurchases() {
-        const purchases = await this.prismaService.purchase.findMany();
-
-        if (!purchases.length) {
-            throw new NotFoundException('No purchases found');
-        }
-
-        return purchases;
-    }
-
-    async getPurchasesInStock() {
         const purchases = await this.prismaService.purchase.findMany({
-            where: { sale: null },
+            include: {
+                Game: true,
+                Sale: true
+            }
         });
-        
+
         if (!purchases.length) {
             throw new NotFoundException('No purchases found');
         }
@@ -30,6 +23,10 @@ export class PurchaseService {
     async getPurchaseById(id: number) {
         const purchase = await this.prismaService.purchase.findUnique({
             where: { id },
+            include: {
+                Game: true,
+                Sale: true
+            }
         });
 
         if (!purchase) {
