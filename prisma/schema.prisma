@@ -36,7 +36,7 @@ model Purchase {
   updated_at      DateTime @default(now()) @updatedAt
 
   Sale Sale? @relation("Sale_0/1-1_Purchase")
-  Game Game  @relation("Game_1-N_Purchase", fields: [game_id], references: [id])
+  Game Game  @relation("Game_1-N_Purchase", fields: [game_id], references: [id], onDelete: Cascade)
 }
 
 model Sale {

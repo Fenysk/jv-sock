@@ -120,7 +120,6 @@ export class GameService {
         let createdGame;
         
         try {
-            console.log('try to create game');
             createdGame = await this.prismaService.game.create({
                 data: game
             });
