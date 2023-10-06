@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
@@ -37,9 +38,20 @@ export class PurchaseService {
     }
 
     async createPurchase(purchase: any) {
-        const newPurchase = await this.prismaService.purchase.create({
-            data: purchase,
-        });
+        let newPurchase;
+        try {
+            newPurchase = await this.prismaService.purchase.create({
+                data: purchase,
+            });
+        } catch (error) {
+            if (error instanceof PrismaClientKnownRequestError) {
+                if (error.code === 'P2003') {
+                    throw new ForbiddenException(`${error.meta.field_name} not found`);
+                } else {
+                    throw new Error('Purchase not created');
+                }
+            }
+        }
 
         if (!newPurchase) {
             throw new NotFoundException('Cannot create purchase');

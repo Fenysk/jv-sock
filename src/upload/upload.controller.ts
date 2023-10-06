@@ -18,7 +18,7 @@ export class UploadController {
 
                 let fileError: Error = null
                 const fileName = file.originalname.split('.')[0]
-                const fileExt = file.originalname.split('.')[1]                
+                const fileExt = file.originalname.split('.')[1]
                 const fileDate = new Date().toISOString().replace(/:/g, '-')
 
                 if (!file.mimetype.match(/\/(jpg|jpeg|png|gif)$/)) {
@@ -30,7 +30,6 @@ export class UploadController {
         })
     }))
     async uploadImage(@UploadedFile() file: Express.Multer.File) {
-        console.log(file)
         return { path: file.path }
     }
 

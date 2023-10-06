@@ -116,9 +116,11 @@ export class GameService {
     }
 
     async createGame(game: any) {
-        let createdGame;
 
+        let createdGame;
+        
         try {
+            console.log('try to create game');
             createdGame = await this.prismaService.game.create({
                 data: game
             });
