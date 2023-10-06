@@ -19,6 +19,8 @@ model Game {
   updated_at    DateTime @default(now()) @updatedAt
 
   Purchases Purchase[] @relation("Game_1-N_Purchase")
+
+  @@unique([name, console, edition, region, released_year])
 }
 
 model Purchase {

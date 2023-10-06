@@ -1,4 +1,5 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { PurchaseService } from 'src/purchase/purchase.service';
 
@@ -73,7 +74,7 @@ export class GameService {
                 delete gameNotSaled.Purchases;
                 delete gameNotSaled.Sale;
                 delete gameNotSaled.quantity;
-                    
+
                 // On ajoute l'objet jeu non vendu dans le tableau des jeux non vendus
                 gamesNotSaled.push(gameNotSaled);
             });
@@ -115,9 +116,21 @@ export class GameService {
     }
 
     async createGame(game: any) {
-        const createdGame = await this.prismaService.game.create({
-            data: game
-        });
+        let createdGame;
+
+        try {
+            createdGame = await this.prismaService.game.create({
+                data: game
+            });
+        } catch (error) {
+            if (error instanceof PrismaClientKnownRequestError) {
+                if (error.code === 'P2002') {
+                    throw new ForbiddenException('Game already exists');
+                } else {
+                    throw new Error('Game not created');
+                }
+            }
+        }
 
         if (!createdGame) {
             throw new NotFoundException('Game not created');
