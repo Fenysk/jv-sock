@@ -50,7 +50,7 @@ export class GameService {
         gamesInStock.forEach(game => {
 
             // On garde uniquement l'inventaire des jeux avec achats qui n'ont pas été vendus
-            game.Purchases.filter(purchase => !purchase.Sale);
+            game.Purchases = game.Purchases.filter(purchase => !purchase.Sale);
 
             // Pour chaque achat du jeu non vendu
             game.Purchases.forEach(purchase => {
