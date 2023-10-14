@@ -5,6 +5,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { PurchaseModule } from './purchase/purchase.module';
 import { SaleModule } from './sale/sale.module';
 import { UploadModule } from './upload/upload.module';
+import { AppController } from './app.controller';
 
 @Module({
   imports: [
@@ -17,5 +18,6 @@ import { UploadModule } from './upload/upload.module';
     SaleModule,
     UploadModule
   ],
+  controllers: [AppController]
 })
 export class AppModule { }

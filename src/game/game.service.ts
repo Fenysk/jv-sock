@@ -1,14 +1,10 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { PurchaseService } from 'src/purchase/purchase.service';
 
 @Injectable()
 export class GameService {
-    constructor(
-        private readonly prismaService: PrismaService,
-        private readonly purchaseService: PurchaseService
-    ) { }
+    constructor(private readonly prismaService: PrismaService) { }
 
     async getAllGames() {
         let games: any[] = await this.prismaService.game.findMany({
@@ -118,7 +114,7 @@ export class GameService {
     async createGame(game: any) {
 
         let createdGame;
-        
+
         try {
             createdGame = await this.prismaService.game.create({
                 data: game
