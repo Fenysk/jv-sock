@@ -7,6 +7,16 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model User {
+  id              Int      @id @default(autoincrement())
+  email           String   @unique
+  username        String   @unique
+  hashed_password String
+  created_at      DateTime @default(now())
+  updated_at      DateTime @default(now()) @updatedAt
+  role            String   @default("USER")
+}
+
 model Game {
   id            Int      @id @default(autoincrement())
   name          String
