@@ -1,6 +1,9 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from '@nestjs/common';
 import { GameService } from './game.service';
 import { CreateGameDto } from './dto/game.dto';
+import { JwtGuard, RolesGuard } from 'src/auth/guard';
+import { Roles } from 'src/auth/decorator';
+import { Role } from 'src/auth/enums/role.enum';
 
 @Controller('api/game')
 export class GameController {
@@ -21,16 +24,22 @@ export class GameController {
         return this.gameService.getGameById(Number(id));
     }
 
+    @UseGuards(JwtGuard, RolesGuard)
+    @Roles(Role.ADMIN)
     @Post('create')
     createGame(@Body() game: CreateGameDto) {
         return this.gameService.createGame(game);
     }
 
+    @UseGuards(JwtGuard, RolesGuard)
+    @Roles(Role.ADMIN)
     @Put('update/:id')
     updateGame(@Param('id') id: string, @Body() game: CreateGameDto) {
         return this.gameService.updateGame(Number(id), game);
     }
 
+    @UseGuards(JwtGuard, RolesGuard)
+    @Roles(Role.ADMIN)
     @Delete('delete/:id')
     deleteGame(@Param('id') id: string) {
         return this.gameService.deleteGame(Number(id));

@@ -1,34 +1,59 @@
-import { Body, Controller, Delete, Get, Param, Post, Put } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from '@nestjs/common';
 import { SaleService } from './sale.service';
 import { CreateSaleDto, UpdateSoldedPriceDto } from './dto';
+import { JwtGuard, RolesGuard } from 'src/auth/guard';
+import { GetUser, Roles } from 'src/auth/decorator';
+import { Role } from 'src/auth/enums/role.enum';
 
+@UseGuards(JwtGuard, RolesGuard)
 @Controller('api/sale')
 export class SaleController {
     constructor(private readonly saleService: SaleService) { }
 
+    @Roles(Role.ADMIN)
     @Get('get/all')
     getAllSales() {
         return this.saleService.getAllSales();
     }
 
+    @Roles(Role.SALLER)
+    @Get('get/mine')
+    getMySales(@GetUser('id') user_id: number,) {
+        return this.saleService.getMySales(user_id);
+    }
+
+    @Roles(Role.ADMIN)
     @Get('get/:id')
-    getSaleById(@Param('id') id: string) {
-        return this.saleService.getSaleById(Number(id));
+    getSaleById(
+        @GetUser('id') user_id: number,
+        @Param('id') id: string
+    ) {
+        return this.saleService.getSaleById(user_id, Number(id));
     }
 
     @Post('create')
-    createSale(@Body() sale: CreateSaleDto) {
-        return this.saleService.createSale(sale);
+    createSale(
+        @GetUser('id') user_id: number,
+        @Body() sale: CreateSaleDto
+    ) {
+        return this.saleService.createSale(user_id, sale);
     }
 
     @Put('update/solded_price/:id')
-    updateSoldedPrice(@Param('id') id: string, @Body() dto: UpdateSoldedPriceDto) {
-        return this.saleService.updateSoldedPrice(Number(id), dto.solded_price);
+    updateSoldedPrice(
+        @GetUser('id') user_id: number,
+        @Param('id') sale_id: string,
+        @Body() dto: UpdateSoldedPriceDto
+    ) {
+        return this.saleService.updateSoldedPrice(user_id, Number(sale_id), dto.solded_price);
     }
 
     @Delete('delete/:id')
-    deleteSale(@Param('id') id: string) {
-        return this.saleService.deleteSale(Number(id));
+    deleteSale(
+        @GetUser('id') user_id: number,
+        @Param('id') id: string
+    ) {
+        return this.saleService.deleteSale(user_id, Number(id));
     }
 
 }

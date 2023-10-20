@@ -15,13 +15,29 @@ export class PurchaseService {
         });
 
         if (!purchases.length) {
-            throw new NotFoundException('No purchases found');
+            throw new NotFoundException('No user purchases found');
         }
 
         return purchases;
     }
 
-    async getPurchaseById(id: number) {
+    async getMyPurchases(id: number) {
+        const purchases = await this.prismaService.purchase.findMany({
+            where: { user_id: id },
+            include: {
+                Game: true,
+                Sale: true
+            }
+        });
+
+        if (!purchases.length) {
+            throw new NotFoundException('No user purchases found');
+        }
+
+        return purchases;
+    }
+
+    async getPurchaseById(user_id: number, id: number) {
         const purchase = await this.prismaService.purchase.findUnique({
             where: { id },
             include: {
@@ -34,14 +50,23 @@ export class PurchaseService {
             throw new NotFoundException('No purchase found');
         }
 
+        if (purchase.user_id !== user_id) {
+            throw new ForbiddenException('You are not allowed to see this purchase');
+        }
+
         return purchase;
     }
 
-    async createPurchase(purchase: any) {
-        let newPurchase;
+    async createPurchase(user_id: number, purchase: any) {
+
+        let newPurchase: any;
+
         try {
             newPurchase = await this.prismaService.purchase.create({
-                data: purchase,
+                data: {
+                    user_id,
+                    ...purchase
+                }
             });
         } catch (error) {
             if (error instanceof PrismaClientKnownRequestError) {
@@ -60,29 +85,61 @@ export class PurchaseService {
         return newPurchase;
     }
 
-    async updatePurchase(id: number, purchase: any) {
-        const updatedPurchase = await this.prismaService.purchase.update({
-            where: { id },
-            data: purchase,
-        });
+    async updatePurchase(user_id: number, id: number, data: any) {
 
-        if (!updatedPurchase) {
-            throw new NotFoundException('Cannot update purchase');
+        let updatedPurchase: any;
+
+        try {
+            updatedPurchase = await this.prismaService.purchase.update({
+                where: {
+                    id,
+                    user_id
+                },
+                data: data,
+            });
+
+            return updatedPurchase;
+
+        } catch (error) {
+            
+            if (error instanceof PrismaClientKnownRequestError) {
+                if (error.code === 'P2025') {
+                    throw new NotFoundException('Purchase not found');
+                } else if (error.code === 'P2003') {
+                    throw new ForbiddenException(`${error.meta.field_name} not found`);
+                }
+            }
+            
+            throw new Error('Purchase not updated');
         }
 
-        return updatedPurchase;
     }
 
-    async deletePurchase(id: number) {
-        const deletedPurchase = await this.prismaService.purchase.delete({
-            where: { id },
-        });
+    async deletePurchase(user_id: number, id: number) {
+
+        let deletedPurchase: any;
+
+        try {
+            deletedPurchase = await this.prismaService.purchase.delete({
+                where: {
+                    id,
+                    user_id
+                }
+            });
+        } catch (error) {
+            console.log('error code :', error.code);
+            if (error instanceof PrismaClientKnownRequestError) {
+                if (error.code === 'P2025') {
+                    throw new NotFoundException('Purchase not found');
+                }
+            }
+        }
 
         if (!deletedPurchase) {
-            throw new NotFoundException('Cannot delete purchase');
+            throw new NotFoundException('Purchase not deleted');
         }
 
-        return 'Purchase deleted successfully';
-    }
+        return deletedPurchase;
 
+    }
 }

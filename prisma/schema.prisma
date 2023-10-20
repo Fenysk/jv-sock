@@ -14,7 +14,10 @@ model User {
   hashed_password String
   created_at      DateTime @default(now())
   updated_at      DateTime @default(now()) @updatedAt
-  role            String   @default("USER")
+  roles           String[] @default(["USER"])
+
+  purchases Purchase[] @relation("User_1-N_Purchase")
+  sales     Sale[]     @relation("Sale_1-N_Purchase")
 }
 
 model Game {
@@ -36,6 +39,7 @@ model Game {
 
 model Purchase {
   id              Int      @id @default(autoincrement())
+  user_id         Int
   game_id         Int
   purchased_price Float
   estimated_price Float
@@ -45,18 +49,21 @@ model Purchase {
   created_at      DateTime @default(now())
   updated_at      DateTime @default(now()) @updatedAt
 
+  User User  @relation("User_1-N_Purchase", fields: [user_id], references: [id], onDelete: Cascade)
   Sale Sale? @relation("Sale_0/1-1_Purchase")
   Game Game  @relation("Game_1-N_Purchase", fields: [game_id], references: [id], onDelete: Cascade)
 }
 
 model Sale {
   id           Int      @id @default(autoincrement())
+  user_id      Int
   purchase_id  Int
   solded_price Float
   created_at   DateTime @default(now())
   updated_at   DateTime @default(now()) @updatedAt
 
   Purchase Purchase? @relation("Sale_0/1-1_Purchase", fields: [purchase_id], references: [id], onDelete: Cascade)
+  User     User      @relation("Sale_1-N_Purchase", fields: [user_id], references: [id], onDelete: Cascade)
 
   @@unique([purchase_id])
 }
