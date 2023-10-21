@@ -1,6 +1,9 @@
-import { Controller, Get, NotAcceptableException, Param, Post, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, NotAcceptableException, Param, Post, Res, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
+import { Roles } from 'src/auth/decorator';
+import { Role } from 'src/auth/enums/role.enum';
+import { JwtGuard, RolesGuard } from 'src/auth/guard';
 
 @Controller('api/files')
 export class UploadController {
@@ -10,6 +13,8 @@ export class UploadController {
         res.sendFile(path, { root: './files' })
     }
 
+    @UseGuards(JwtGuard, RolesGuard)
+    @Roles(Role.ADMIN)
     @Post('upload/image')
     @UseInterceptors(FileInterceptor('file', {
         storage: diskStorage({

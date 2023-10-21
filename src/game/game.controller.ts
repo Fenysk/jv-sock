@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { GameService } from './game.service';
 import { CreateGameDto } from './dto/game.dto';
 import { JwtGuard, RolesGuard } from 'src/auth/guard';
@@ -10,8 +10,8 @@ export class GameController {
     constructor(private readonly gameService: GameService) { }
 
     @Get('get/all')
-    getAllGames() {
-        return this.gameService.getAllGames();
+    getAllGames(@Query('name') name?: string) {
+        return this.gameService.getAllGames(name);
     }
 
     @Get('get/stock')
@@ -34,8 +34,8 @@ export class GameController {
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(Role.ADMIN)
     @Put('update/:id')
-    updateGame(@Param('id') id: string, @Body() game: CreateGameDto) {
-        return this.gameService.updateGame(Number(id), game);
+    updateGame(@Param('id') id: string, @Body() data: any) {
+        return this.gameService.updateGame(Number(id), data);
     }
 
     @UseGuards(JwtGuard, RolesGuard)

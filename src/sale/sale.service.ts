@@ -10,8 +10,18 @@ export class SaleService {
         private readonly purchaseService: PurchaseService,
     ) { }
 
-    async getAllSales() {
-        let sales = await this.prismaService.sale.findMany({
+    async getAllSales(name?: string) {
+        const sales = await this.prismaService.sale.findMany({
+            where: {
+                Purchase: {
+                    Game: {
+                        name: {
+                            contains: name,
+                            mode: 'insensitive'
+                        }
+                    }
+                }
+            },
             include: {
                 Purchase: {
                     include: {
@@ -28,9 +38,19 @@ export class SaleService {
         return sales;
     }
 
-    async getMySales(id: number) {
-        let sales = await this.prismaService.sale.findMany({
-            where: { user_id: id },
+    async getMySales(id: number, name?: string) {
+        const sales = await this.prismaService.sale.findMany({
+            where: {
+                user_id: id,
+                Purchase: {
+                    Game: {
+                        name: {
+                            contains: name,
+                            mode: 'insensitive'
+                        }
+                    }
+                }
+            },
             include: {
                 Purchase: {
                     include: {
@@ -48,7 +68,7 @@ export class SaleService {
     }
 
     async getSaleById(user_id: number, id: number) {
-        let sale = await this.prismaService.sale.findUnique({
+        const sale = await this.prismaService.sale.findUnique({
             where: { id },
             include: {
                 Purchase: {
@@ -78,76 +98,71 @@ export class SaleService {
             throw new NotFoundException('No purchase found');
         }
 
-        let newSale: any;
-
         try {
-            newSale = await this.prismaService.sale.create({
+            const newSale = await this.prismaService.sale.create({
                 data: {
                     user_id,
                     ...data
                 }
             });
+
+            return newSale;
         } catch (error) {
-            if (error instanceof PrismaClientKnownRequestError) {
-                if (error.code === 'P2002') {
-                    throw new NotFoundException('This sale already exists');
-                }
+            if (!(error instanceof PrismaClientKnownRequestError)) {
+                throw new Error('Sale not created');
             }
-        }
 
-        if (!newSale) {
-            throw new NotFoundException('No purchase found');
-        }
+            if (error.code === 'P2002') {
+                throw new ForbiddenException('Sale already exists');
+            }
 
-        return newSale;
+            throw error;
+        }
     }
 
     async updateSoldedPrice(user_id: number, id: number, solded_price: number) {
 
-        let updatedSale: any;
-
         try {
-            updatedSale = await this.prismaService.sale.update({
+            const updatedSale = await this.prismaService.sale.update({
                 where: { id, user_id },
                 data: { solded_price }
             });
 
             return updatedSale;
         } catch (error) {
-
-            if (error instanceof PrismaClientKnownRequestError) {
-                if (error.code === 'P2002') {
-                    throw new NotFoundException('This sale already exists');
-                } else if (error.code === 'P2003') {
-                    throw new ForbiddenException(`${error.meta.field_name} not found`);
-                } else if (error.code === 'P2025') {
-                    throw new ForbiddenException('You are not allowed to update this sale');
-                }
+            if (!(error instanceof PrismaClientKnownRequestError)) {
+                throw new Error('Sale not updated');
             }
 
-            throw new Error('Sale not updated');
+            if (error.code === 'P2025') {
+                throw new NotFoundException('Sale not found');
+            }
+
+            if (error.code === 'P2003') {
+                throw new ForbiddenException(`${error.meta.field_name} is not valid`);
+            }
+
+            throw error;
         }
     }
 
     async deleteSale(user_id: number, id: number) {
+        try {
+            const deletedSale = await this.prismaService.sale.delete({
+                where: { id, user_id }
+            });
 
-        let sale = await this.prismaService.sale.findUnique({
-            where: { id }
-        });
+            return deletedSale;
+        } catch (error) {
+            if (!(error instanceof PrismaClientKnownRequestError)) {
+                throw new Error('Sale not deleted');
+            }
 
-        if (!sale) {
-            throw new NotFoundException('No sale found');
+            if (error.code === 'P2025') {
+                throw new NotFoundException('Sale not found');
+            }
+
+            throw error;
         }
-
-        if (sale.user_id !== user_id) {
-            throw new ForbiddenException('You are not allowed to delete this sale');
-        }
-
-
-        let deletedSale = await this.prismaService.sale.delete({
-            where: { id }
-        });
-
-        return deletedSale;
     }
 }

@@ -6,8 +6,17 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class GameService {
     constructor(private readonly prismaService: PrismaService) { }
 
-    async getAllGames() {
+
+
+    async getAllGames(name?: string) {
+
         let games: any[] = await this.prismaService.game.findMany({
+            where: {
+                name: {
+                    contains: name,
+                    mode: 'insensitive'
+                }
+            },
             include: {
                 Purchases: {
                     include: {
@@ -26,10 +35,15 @@ export class GameService {
             const gamePurchased = game.Purchases.length;
             const gameSolded = game.Purchases.filter(purchase => purchase.Sale).length;
             game.quantity = gamePurchased - gameSolded;
+
+            delete game.Purchases;
+            delete game.Sale;
         });
 
         return games;
     }
+
+
 
     async getGamesInStock() {
         // On récupère l'inventaire des jeux
@@ -39,8 +53,6 @@ export class GameService {
         const gamesInStock = games.filter(game => game.quantity > 0);
 
         let gamesNotSaled = [];
-
-
 
         // Pour chaque jeu de l'inventaire
         gamesInStock.forEach(game => {
@@ -88,6 +100,7 @@ export class GameService {
     }
 
 
+
     async getGameById(id: number) {
         let game: any = await this.prismaService.game.findUnique({
             where: { id: id },
@@ -111,54 +124,77 @@ export class GameService {
         return game;
     }
 
+
+
     async createGame(game: any) {
 
-        let createdGame;
-
         try {
-            createdGame = await this.prismaService.game.create({
+            const createdGame = await this.prismaService.game.create({
                 data: game
             });
+
+            return createdGame;
         } catch (error) {
-            if (error instanceof PrismaClientKnownRequestError) {
-                if (error.code === 'P2002') {
-                    throw new ForbiddenException('Game already exists');
-                } else {
-                    throw new Error('Game not created');
-                }
+            if (!(error instanceof PrismaClientKnownRequestError)) {
+                throw new Error('Game not created');
             }
+
+            if (error.code === 'P2002') {
+                throw new ForbiddenException('Game already exists');
+            }
+
+            throw error;
         }
 
-        if (!createdGame) {
-            throw new NotFoundException('Game not created');
-        }
-
-        return createdGame;
     }
 
-    async updateGame(id: number, game: any) {
-        const updatedGame = await this.prismaService.game.update({
-            where: { id: id },
-            data: game
-        });
 
-        if (!updatedGame) {
-            throw new NotFoundException('Game not found');
+
+    async updateGame(id: number, data: any) {
+
+        try {
+            const updatedGame = await this.prismaService.game.update({
+                where: { id: id },
+                data
+            });
+
+            return updatedGame;
+        } catch (error) {
+            if (!(error instanceof PrismaClientKnownRequestError)) {
+                throw new Error('Game not updated');
+            }
+
+            if (error.code === 'P2002') {
+                throw new ForbiddenException('Game already exists');
+            }
+
+            throw error;
         }
 
-        return updatedGame;
     }
+
+
 
     async deleteGame(id: number) {
-        const deleteGame = await this.prismaService.game.delete({
-            where: { id: id }
-        });
 
-        if (!deleteGame) {
-            throw new NotFoundException('Game not found');
+        try {
+            const deletedGame = await this.prismaService.game.delete({
+                where: { id: id }
+            });
+
+            return deletedGame;
+        } catch (error) {
+            if (!(error instanceof PrismaClientKnownRequestError)) {
+                throw new Error('Game not deleted');
+            }
+
+            if (error.code === 'P2025') {
+                throw new NotFoundException('Game not found');
+            }
+
+            throw error;
         }
 
-        return 'Game deleted successfully'
     }
 
 }

@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
 import { PurchaseService } from './purchase.service';
 import { CreatePurchaseDto } from './dto';
 import { JwtGuard, RolesGuard } from 'src/auth/guard';
@@ -12,14 +12,17 @@ export class PurchaseController {
 
     @Roles(Role.ADMIN)
     @Get('get/all')
-    getAllPurchases() {
-        return this.purchaseService.getAllPurchases();
+    getAllPurchases(@Query('name') name?: string) {
+        return this.purchaseService.getAllPurchases(name);
     }
 
     @Roles(Role.SALLER)
     @Get('get/mine')
-    getMyPurchases(@GetUser('id') user_id: number,) {
-        return this.purchaseService.getMyPurchases(user_id);
+    getMyPurchases(
+        @GetUser('id') user_id: number,
+        @Query('name') name?: string
+    ) {
+        return this.purchaseService.getMyPurchases(user_id, name);
     }
 
     @Roles(Role.SALLER)
