@@ -1,65 +1,65 @@
 import { Body, Controller, Delete, Get, Param, Post, Put, Query, UseGuards } from '@nestjs/common';
-import { PurchaseService } from './purchase.service';
-import { CreatePurchaseDto } from './dto';
+import { ArticleService } from './article.service';
+import { CreateArticleDto } from './dto';
 import { JwtGuard, RolesGuard } from 'src/auth/guard';
 import { GetUser, Roles } from 'src/auth/decorator';
 import { Role } from 'src/auth/enums/role.enum';
 
 @UseGuards(JwtGuard, RolesGuard)
-@Controller('api/purchase')
-export class PurchaseController {
-    constructor(private readonly purchaseService: PurchaseService) { }
+@Controller('api/article')
+export class ArticleController {
+    constructor(private readonly articleService: ArticleService) { }
 
     @Roles(Role.ADMIN)
     @Get('get/all')
-    getAllPurchases(@Query('name') name?: string) {
-        return this.purchaseService.getAllPurchases(name);
+    getAllArticles(@Query('name') name?: string) {
+        return this.articleService.getAllArticles(name);
     }
 
     @Roles(Role.SALLER)
     @Get('get/mine')
-    getMyPurchases(
+    getMyArticles(
         @GetUser('id') user_id: number,
         @Query('name') name?: string
     ) {
-        return this.purchaseService.getMyPurchases(user_id, name);
+        return this.articleService.getMyArticles(user_id, name);
     }
 
     @Roles(Role.SALLER)
     @Get('get/:id')
-    getPurchaseById(
+    getArticleById(
         @GetUser('id') user_id: number,
         @Param('id') id: string
     ) {
-        return this.purchaseService.getPurchaseById(user_id, Number(id));
+        return this.articleService.getArticleById(user_id, Number(id));
     }
 
     @Roles(Role.SALLER)
     @Post('create')
-    createPurchase(
+    createArticle(
         @GetUser('id') user_id: number,
-        @Body() purchase: CreatePurchaseDto
+        @Body() article: CreateArticleDto
     ) {
-        return this.purchaseService.createPurchase(user_id, purchase);
+        return this.articleService.createArticle(user_id, article);
     }
 
     @Roles(Role.SALLER)
     @Put('update/:id')
-    updatePurchase(
+    updateArticle(
         @GetUser('id') user_id: number,
-        @Param('id') purchase_id: string,
+        @Param('id') article_id: string,
         @Body() data: any
     ) {
-        return this.purchaseService.updatePurchase(user_id, Number(purchase_id), data);
+        return this.articleService.updateArticle(user_id, Number(article_id), data);
     }
 
     @Roles(Role.SALLER)
     @Delete('delete/:id')
-    deletePurchase(
+    deleteArticle(
         @GetUser('id') user_id: number,
         @Param('id') id: string
     ) {
-        return this.purchaseService.deletePurchase(user_id, Number(id));
+        return this.articleService.deleteArticle(user_id, Number(id));
     }
 
 }

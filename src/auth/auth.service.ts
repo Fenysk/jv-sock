@@ -4,13 +4,15 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { CartService } from 'src/cart/cart.service';
 
 @Injectable()
 export class AuthService {
     constructor(
         private readonly prismaService: PrismaService,
         private jwt: JwtService,
-        private config: ConfigService
+        private config: ConfigService,
+        private cartService: CartService
     ) { }
 
     async register(registerDto: any) {
@@ -24,7 +26,10 @@ export class AuthService {
                 data: {
                     email,
                     username,
-                    hashed_password: hashedPassword
+                    hashed_password: hashedPassword,
+                    Cart: {
+                        create: {}
+                    }
                 }
             });
 
@@ -33,7 +38,7 @@ export class AuthService {
             return token;
 
         } catch (error) {
-
+            console.log(error.code);
             if (error instanceof PrismaClientKnownRequestError) {
                 if (error.code === 'P2002') {
 

@@ -1,19 +1,19 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { PurchaseService } from 'src/purchase/purchase.service';
+import { ArticleService } from 'src/article/article.service';
 
 @Injectable()
 export class SaleService {
     constructor(
         private readonly prismaService: PrismaService,
-        private readonly purchaseService: PurchaseService,
+        private readonly articleService: ArticleService,
     ) { }
 
     async getAllSales(name?: string) {
         const sales = await this.prismaService.sale.findMany({
             where: {
-                Purchase: {
+                Article: {
                     Game: {
                         name: {
                             contains: name,
@@ -23,7 +23,7 @@ export class SaleService {
                 }
             },
             include: {
-                Purchase: {
+                Article: {
                     include: {
                         Game: true
                     }
@@ -42,7 +42,7 @@ export class SaleService {
         const sales = await this.prismaService.sale.findMany({
             where: {
                 user_id: id,
-                Purchase: {
+                Article: {
                     Game: {
                         name: {
                             contains: name,
@@ -52,7 +52,7 @@ export class SaleService {
                 }
             },
             include: {
-                Purchase: {
+                Article: {
                     include: {
                         Game: true
                     }
@@ -71,7 +71,7 @@ export class SaleService {
         const sale = await this.prismaService.sale.findUnique({
             where: { id },
             include: {
-                Purchase: {
+                Article: {
                     include: {
                         Game: true
                     }
@@ -92,10 +92,10 @@ export class SaleService {
 
     async createSale(user_id: number, data: any) {
 
-        const purchase = await this.purchaseService.getPurchaseById(user_id, data.purchase_id);
+        const article = await this.articleService.getArticleById(user_id, data.article_id);
 
-        if (!purchase) {
-            throw new NotFoundException('No purchase found');
+        if (!article) {
+            throw new NotFoundException('No article found');
         }
 
         try {
@@ -113,7 +113,7 @@ export class SaleService {
             }
 
             if (error.code === 'P2002') {
-                throw new ForbiddenException('Sale already exists');
+                throw new ConflictException('Sale already exists');
             }
 
             throw error;

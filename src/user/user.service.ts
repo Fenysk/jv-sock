@@ -7,7 +7,12 @@ export class UserService {
     constructor(private readonly prismaService: PrismaService) { }
 
     async getAllUsers() {
-        const users = await this.prismaService.user.findMany();
+        const users = await this.prismaService.user.findMany({
+            include: {
+                Articles: true,
+                Sales: true
+            }
+        });
 
         if (users.length === 0) {
             throw new NotFoundException('Users not found');

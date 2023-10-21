@@ -1,14 +1,14 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
-export class PurchaseService {
+export class ArticleService {
     constructor(private readonly prismaService: PrismaService) { }
 
-    async getAllPurchases(name?: string) {
+    async getAllArticles(name?: string) {
 
-        const purchases = await this.prismaService.purchase.findMany({
+        const articles = await this.prismaService.article.findMany({
             where: {
                 Game: {
                     name: {
@@ -23,15 +23,15 @@ export class PurchaseService {
             }
         });
 
-        if (!purchases.length) {
-            throw new NotFoundException('No user purchases found');
+        if (!articles.length) {
+            throw new NotFoundException('No user articles found');
         }
 
-        return purchases;
+        return articles;
     }
 
-    async getMyPurchases(user_id: number, name?: string) {
-        const purchases = await this.prismaService.purchase.findMany({
+    async getMyArticles(user_id: number, name?: string) {
+        const articles = await this.prismaService.article.findMany({
             where: {
                 user_id: user_id,
                 Game: {
@@ -47,15 +47,15 @@ export class PurchaseService {
             }
         });
 
-        if (!purchases.length) {
-            throw new NotFoundException('No user purchases found');
+        if (!articles.length) {
+            throw new NotFoundException('No user articles found');
         }
 
-        return purchases;
+        return articles;
     }
 
-    async getPurchaseById(user_id: number, id: number) {
-        const purchase = await this.prismaService.purchase.findUnique({
+    async getArticleById(user_id: number, id: number) {
+        const article = await this.prismaService.article.findUnique({
             where: { id },
             include: {
                 Game: true,
@@ -63,83 +63,89 @@ export class PurchaseService {
             }
         });
 
-        if (!purchase) {
-            throw new NotFoundException('No purchase found');
+        if (!article) {
+            throw new NotFoundException('No article found');
         }
 
-        if (purchase.user_id !== user_id) {
-            throw new ForbiddenException('You are not allowed to see this purchase');
+        if (article.user_id !== user_id) {
+            throw new ForbiddenException('You are not allowed to see this article');
         }
 
-        return purchase;
+        return article;
     }
 
-    async createPurchase(user_id: number, purchase: any) {
+    async createArticle(user_id: number, article: any) {
 
         try {
-            const newPurchase = await this.prismaService.purchase.create({
+            const newArticle = await this.prismaService.article.create({
                 data: {
                     user_id,
-                    ...purchase
+                    ...article
                 }
             });
 
-            return newPurchase;
+            return newArticle;
+
         } catch (error) {
+
             if (!(error instanceof PrismaClientKnownRequestError)) {
-                throw new Error('Purchase not created');
+                throw new Error('Article not created');
             }
 
             if (error.code === 'P2002') {
-                throw new ForbiddenException('Purchase already exists');
+                throw new ConflictException('Article already exists');
+            }
+            
+            if (error.code === 'P2003') {
+                throw new NotFoundException('Game not found');
             }
 
             throw error;
         }
     }
 
-    async updatePurchase(user_id: number, purchase_id: number, data: any) {
+    async updateArticle(user_id: number, article_id: number, data: any) {
         try {
-            const updatedPurchase = await this.prismaService.purchase.update({
+            const updatedArticle = await this.prismaService.article.update({
                 where: {
-                    id: purchase_id,
+                    id: article_id,
                     user_id
                 },
                 data
             });
 
-            return updatedPurchase;
+            return updatedArticle;
         } catch (error) {
             if (!(error instanceof PrismaClientKnownRequestError)) {
-                throw new Error('Purchase not updated');
+                throw new Error('Article not updated');
             }
 
             if (error.code === 'P2025') {
-                throw new NotFoundException('Purchase not found');
+                throw new NotFoundException('Article not found');
             }
 
             throw error;
         }
     }
 
-    async deletePurchase(user_id: number, id: number) {
+    async deleteArticle(user_id: number, id: number) {
 
         try {
-            const deletedPurchase = await this.prismaService.purchase.delete({
+            const deletedArticle = await this.prismaService.article.delete({
                 where: {
                     id,
                     user_id
                 }
             });
 
-            return deletedPurchase;
+            return deletedArticle;
         } catch (error) {
             if (!(error instanceof PrismaClientKnownRequestError)) {
-                throw new Error('Purchase not deleted');
+                throw new Error('Article not deleted');
             }
 
             if (error.code === 'P2025') {
-                throw new NotFoundException('Purchase not found');
+                throw new NotFoundException('Article not found');
             }
 
             throw error;

@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { PrismaService } from 'src/prisma/prisma.service';
 
@@ -18,7 +18,7 @@ export class GameService {
                 }
             },
             include: {
-                Purchases: {
+                Articles: {
                     include: {
                         Sale: true
                     }
@@ -32,12 +32,9 @@ export class GameService {
 
         // Determine quantity for each game
         games.forEach(game => {
-            const gamePurchased = game.Purchases.length;
-            const gameSolded = game.Purchases.filter(purchase => purchase.Sale).length;
-            game.quantity = gamePurchased - gameSolded;
-
-            delete game.Purchases;
-            delete game.Sale;
+            const gameArticled = game.Articles.length;
+            const gameSolded = game.Articles.filter(article => article.Sale).length;
+            game.quantity = gameArticled - gameSolded;
         });
 
         return games;
@@ -50,36 +47,35 @@ export class GameService {
         const games: any[] = (await this.getAllGames());
 
         // On garde uniquement l'inventaire des jeux en stock
-        const gamesInStock = games.filter(game => game.quantity > 0);
+        const gamesWithStock = games.filter(game => game.quantity > 0);
 
         let gamesNotSaled = [];
 
         // Pour chaque jeu de l'inventaire
-        gamesInStock.forEach(game => {
-
+        gamesWithStock.forEach(game => {
             // On garde uniquement l'inventaire des jeux avec achats qui n'ont pas été vendus
-            game.Purchases = game.Purchases.filter(purchase => !purchase.Sale);
+            game.Articles = game.Articles.filter(article => !article.Sale);
 
             // Pour chaque achat du jeu non vendu
-            game.Purchases.forEach(purchase => {
+            game.Articles.forEach(article => {
 
                 // On crée un objet jeu non vendu
                 const gameNotSaled = {
                     ...game,
-                    purchase_id: purchase.id,
+                    article_id: article.id,
                     game_id: game.id,
-                    purchased_price: purchase.purchased_price,
-                    estimated_price: purchase.estimated_price,
-                    origin: purchase.origin,
-                    state: purchase.state,
-                    content: purchase.content,
-                    created_at: purchase.created_at,
-                    updated_at: purchase.updated_at,
+                    articled_price: article.articled_price,
+                    estimated_price: article.estimated_price,
+                    origin: article.origin,
+                    state: article.state,
+                    content: article.content,
+                    created_at: article.created_at,
+                    updated_at: article.updated_at,
                 }
 
                 // On supprime les propriétés inutiles
                 delete gameNotSaled.id;
-                delete gameNotSaled.Purchases;
+                delete gameNotSaled.Articles;
                 delete gameNotSaled.Sale;
                 delete gameNotSaled.quantity;
 
@@ -105,7 +101,7 @@ export class GameService {
         let game: any = await this.prismaService.game.findUnique({
             where: { id: id },
             include: {
-                Purchases: {
+                Articles: {
                     include: {
                         Sale: true
                     }
@@ -117,9 +113,9 @@ export class GameService {
             throw new NotFoundException('Game not found');
         }
 
-        const gamePurchased = game.Purchases.length;
-        const gameSolded = game.Purchases.filter(purchase => purchase.Sale).length;
-        game.quantity = gamePurchased - gameSolded;
+        const gameArticled = game.Articles.length;
+        const gameSolded = game.Articles.filter(article => article.Sale).length;
+        game.quantity = gameArticled - gameSolded;
 
         return game;
     }
@@ -140,7 +136,7 @@ export class GameService {
             }
 
             if (error.code === 'P2002') {
-                throw new ForbiddenException('Game already exists');
+                throw new ConflictException('Game already exists');
             }
 
             throw error;

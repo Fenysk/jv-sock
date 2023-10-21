@@ -30,6 +30,10 @@ export class JwtStrategy extends PassportStrategy(
             }
         })
 
+        if (!user) {
+            throw new Error('User not found');
+        }
+
         delete user.hashed_password;
 
         return user;
