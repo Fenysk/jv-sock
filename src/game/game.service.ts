@@ -18,9 +18,13 @@ export class GameService {
                 }
             },
             include: {
-                Articles: {
+                Purchases: {
                     include: {
-                        Sale: true
+                        Article: {
+                            include: {
+                                Sale: true
+                            }
+                        }
                     }
                 }
             }
@@ -32,9 +36,9 @@ export class GameService {
 
         // Determine quantity for each game
         games.forEach(game => {
-            const gameArticled = game.Articles.length;
-            const gameSolded = game.Articles.filter(article => article.Sale).length;
-            game.quantity = gameArticled - gameSolded;
+            const gamePurchased = game.Purchases.length;
+            const gameSolded = game.Purchases.filter(article => article.Sale).length;
+            game.quantity = gamePurchased - gameSolded;
         });
 
         return games;
@@ -101,9 +105,13 @@ export class GameService {
         let game: any = await this.prismaService.game.findUnique({
             where: { id: id },
             include: {
-                Articles: {
+                Purchases: {
                     include: {
-                        Sale: true
+                        Article: {
+                            include: {
+                                Sale: true
+                            }
+                        }
                     }
                 }
             }
@@ -113,9 +121,9 @@ export class GameService {
             throw new NotFoundException('Game not found');
         }
 
-        const gameArticled = game.Articles.length;
-        const gameSolded = game.Articles.filter(article => article.Sale).length;
-        game.quantity = gameArticled - gameSolded;
+        const gamePurchased = game.Purchases.length;
+        const gameSolded = game.Purchases.filter(article => article.Sale).length;
+        game.quantity = gamePurchased - gameSolded;
 
         return game;
     }
@@ -158,6 +166,10 @@ export class GameService {
         } catch (error) {
             if (!(error instanceof PrismaClientKnownRequestError)) {
                 throw new Error('Game not updated');
+            }
+
+            if (error.code === 'P2025') {
+                throw new NotFoundException('Game not found');
             }
 
             if (error.code === 'P2002') {

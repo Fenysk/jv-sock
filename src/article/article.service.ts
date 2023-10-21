@@ -7,24 +7,29 @@ export class ArticleService {
     constructor(private readonly prismaService: PrismaService) { }
 
     async getAllArticles(name?: string) {
-
         const articles = await this.prismaService.article.findMany({
             where: {
-                Game: {
-                    name: {
-                        contains: name,
-                        mode: 'insensitive'
+                Purchase: {
+                    Game: {
+                        name: {
+                            contains: name,
+                            mode: 'insensitive'
+                        }
                     }
                 }
             },
             include: {
-                Game: true,
+                Purchase: {
+                    include: {
+                        Game: true
+                    }
+                },
                 Sale: true
             }
         });
 
         if (!articles.length) {
-            throw new NotFoundException('No user articles found');
+            throw new NotFoundException('No articles found');
         }
 
         return articles;
@@ -34,15 +39,21 @@ export class ArticleService {
         const articles = await this.prismaService.article.findMany({
             where: {
                 user_id: user_id,
-                Game: {
-                    name: {
-                        contains: name,
-                        mode: 'insensitive'
+                Purchase: {
+                    Game: {
+                        name: {
+                            contains: name,
+                            mode: 'insensitive'
+                        }
                     }
                 }
             },
             include: {
-                Game: true,
+                Purchase: {
+                    include: {
+                        Game: true
+                    }
+                },
                 Sale: true
             }
         });
@@ -58,7 +69,11 @@ export class ArticleService {
         const article = await this.prismaService.article.findUnique({
             where: { id },
             include: {
-                Game: true,
+                Purchase: {
+                    include: {
+                        Game: true
+                    }
+                },
                 Sale: true
             }
         });
@@ -95,7 +110,7 @@ export class ArticleService {
             if (error.code === 'P2002') {
                 throw new ConflictException('Article already exists');
             }
-            
+
             if (error.code === 'P2003') {
                 throw new NotFoundException('Game not found');
             }

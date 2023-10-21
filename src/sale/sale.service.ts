@@ -1,23 +1,25 @@
 import { ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { PrismaService } from 'src/prisma/prisma.service';
-import { ArticleService } from 'src/article/article.service';
+import { PurchaseService } from 'src/purchase/purchase.service';
 
 @Injectable()
 export class SaleService {
     constructor(
         private readonly prismaService: PrismaService,
-        private readonly articleService: ArticleService,
+        private readonly purchaseService: PurchaseService,
     ) { }
 
     async getAllSales(name?: string) {
         const sales = await this.prismaService.sale.findMany({
             where: {
                 Article: {
-                    Game: {
-                        name: {
-                            contains: name,
-                            mode: 'insensitive'
+                    Purchase: {
+                        Game: {
+                            name: {
+                                contains: name,
+                                mode: 'insensitive'
+                            }
                         }
                     }
                 }
@@ -25,7 +27,11 @@ export class SaleService {
             include: {
                 Article: {
                     include: {
-                        Game: true
+                        Purchase: {
+                            include: {
+                                Game: true
+                            }
+                        }
                     }
                 }
             }
@@ -43,10 +49,12 @@ export class SaleService {
             where: {
                 user_id: id,
                 Article: {
-                    Game: {
-                        name: {
-                            contains: name,
-                            mode: 'insensitive'
+                    Purchase: {
+                        Game: {
+                            name: {
+                                contains: name,
+                                mode: 'insensitive'
+                            }
                         }
                     }
                 }
@@ -54,7 +62,11 @@ export class SaleService {
             include: {
                 Article: {
                     include: {
-                        Game: true
+                        Purchase: {
+                            include: {
+                                Game: true
+                            }
+                        }
                     }
                 }
             }
@@ -73,7 +85,11 @@ export class SaleService {
             include: {
                 Article: {
                     include: {
-                        Game: true
+                        Purchase: {
+                            include: {
+                                Game: true
+                            }
+                        }
                     }
                 }
             }
@@ -92,10 +108,10 @@ export class SaleService {
 
     async createSale(user_id: number, data: any) {
 
-        const article = await this.articleService.getArticleById(user_id, data.article_id);
+        const purchase = await this.purchaseService.getPurchaseById(user_id, data.purchase_id);
 
-        if (!article) {
-            throw new NotFoundException('No article found');
+        if (!purchase) {
+            throw new NotFoundException('No purchase found');
         }
 
         try {

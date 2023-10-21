@@ -16,9 +16,10 @@ model User {
   updated_at      DateTime @default(now()) @updatedAt
   roles           String[] @default(["USER"])
 
-  Articles Article[] @relation("User_1-N_Article")
-  Sales    Sale[]    @relation("User_1-N_Sale")
-  Carts    Cart[]    @relation("User_1-N_Cart")
+  Purchases Purchase[] @relation("User_1-N_Purchase")
+  Articles  Article[]  @relation("User_1-N_Article")
+  Sales     Sale[]     @relation("User_1-N_Sale")
+  Carts     Cart[]     @relation("User_1-N_Cart")
 }
 
 model Cart {
@@ -45,24 +46,7 @@ model ArticlesOnCart {
   @@unique([cart_id, article_id])
 }
 
-model Game {
-  id            Int      @id @default(autoincrement())
-  name          String
-  image_url     String?
-  console       String
-  edition       String
-  region        String
-  released_year Int
-  barcode_data  String
-  created_at    DateTime @default(now())
-  updated_at    DateTime @default(now()) @updatedAt
-
-  Articles Article[] @relation("Game_1-N_Article")
-
-  @@unique([name, console, edition, region, released_year])
-}
-
-model Article {
+model Purchase {
   id              Int      @id @default(autoincrement())
   user_id         Int
   game_id         Int
@@ -74,10 +58,29 @@ model Article {
   created_at      DateTime @default(now())
   updated_at      DateTime @default(now()) @updatedAt
 
+  User    User     @relation("User_1-N_Purchase", fields: [user_id], references: [id], onDelete: Cascade)
+  Game    Game     @relation("Game_1-N_Purchase", fields: [game_id], references: [id], onDelete: Cascade)
+  Article Article? @relation("Article_0/1-1_Purchase")
+}
+
+model Article {
+  id          Int      @id @default(autoincrement())
+  user_id     Int
+  purchase_id Int
+  available   Boolean  @default(true)
+  title       String
+  description String
+  price       Float
+  images_url  String[]
+  created_at  DateTime @default(now())
+  updated_at  DateTime @default(now()) @updatedAt
+
   User           User             @relation("User_1-N_Article", fields: [user_id], references: [id], onDelete: Cascade)
+  Purchase       Purchase         @relation("Article_0/1-1_Purchase", fields: [purchase_id], references: [id], onDelete: Cascade)
   Sale           Sale?            @relation("Sale_0/1-1_Article")
-  Game           Game             @relation("Game_1-N_Article", fields: [game_id], references: [id], onDelete: Cascade)
   ArticlesOnCart ArticlesOnCart[] @relation("Article_1-N_ArticlesOnCart")
+
+  @@unique([purchase_id])
 }
 
 model Sale {
@@ -92,4 +95,21 @@ model Sale {
   User    User    @relation("User_1-N_Sale", fields: [user_id], references: [id], onDelete: Cascade)
 
   @@unique([article_id])
+}
+
+model Game {
+  id            Int      @id @default(autoincrement())
+  name          String
+  image_url     String?
+  console       String
+  edition       String
+  region        String
+  released_year Int
+  barcode_data  String
+  created_at    DateTime @default(now())
+  updated_at    DateTime @default(now()) @updatedAt
+
+  Purchases Purchase[] @relation("Game_1-N_Purchase")
+
+  @@unique([name, console, edition, region, released_year])
 }

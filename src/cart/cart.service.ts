@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { PrismaService } from 'src/prisma/prisma.service';
 
@@ -131,6 +131,13 @@ export class CartService {
             // Get id of the active cart's user
             const activeCart = await this.getMyActiveCart(user_id);
 
+            // Check if article is available
+            const article = await this.prismaService.article.findFirst({ where: { id: article_id } });
+
+            if (!article) {
+                throw new NotFoundException('Article not found');
+            }
+
             // Add article to cart
             const articleAddedToCart = await this.prismaService.articlesOnCart.create({
                 data: {
@@ -145,12 +152,16 @@ export class CartService {
                 throw error;
             }
 
-            if (error.code === 'P2025') {
-                throw new NotFoundException('Cart not found');
-            }
-
             if (error.code === 'P2002') {
                 throw new ConflictException('Article already in cart');
+            }
+
+            if (error.code === 'P2003') {
+                throw new ForbiddenException(`${error.meta.field_name} is not valid`);
+            }
+
+            if (error.code === 'P2025') {
+                throw new NotFoundException('Cart not found');
             }
 
             throw error;

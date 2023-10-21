@@ -3,21 +3,18 @@ import { IsNotEmpty } from "class-validator";
 export class CreateArticleDto {
 
     @IsNotEmpty()
-    readonly game_id: number;
+    readonly purchase_id: number;
+    
+    @IsNotEmpty()
+    readonly title: string;
 
     @IsNotEmpty()
-    readonly purchased_price: number;
+    readonly description: string;
 
     @IsNotEmpty()
-    readonly estimated_price: number;
+    readonly price: number;
 
     @IsNotEmpty()
-    readonly origin: string;
-
-    @IsNotEmpty()
-    readonly state: string;
-
-    @IsNotEmpty()
-    readonly content: string[];
+    readonly images_url: string[];
     
 }

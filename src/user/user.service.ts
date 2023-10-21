@@ -9,7 +9,7 @@ export class UserService {
     async getAllUsers() {
         const users = await this.prismaService.user.findMany({
             include: {
-                Articles: true,
+                Purchases: true,
                 Sales: true
             }
         });
