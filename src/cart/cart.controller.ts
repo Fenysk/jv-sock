@@ -10,15 +10,26 @@ export class CartController {
     constructor(private readonly cartService: CartService) { }
 
     @Roles(Role.USER)
+    @Post('new')
+    createNewCart(@GetUser('id') user_id: number) {
+        return this.cartService.createNewCart(user_id);
+    }
+
+    @Roles(Role.USER)
+    @Post('switch/:id')
+    switchCart(@GetUser('id') user_id: number, @Param('id') cart_id: string) {
+        return this.cartService.switchCart(user_id, Number(cart_id));
+    }
+
+    @Roles(Role.USER)
     @Get('get/mine')
-    getMyCart(@GetUser('id') user_id: number) {
-        return this.cartService.getMyCart(user_id);
+    getMyActiveCart(@GetUser('id') user_id: number) {
+        return this.cartService.getMyActiveCart(user_id);
     }
 
     @Roles(Role.USER)
     @Post('add/:id')
     addToCart(@GetUser('id') user_id: number, @Param('id') article_id: string) {
-        console.log("ID de l'article : " + article_id);
         return this.cartService.addToCart(user_id, Number(article_id));
     }
 

@@ -4,20 +4,17 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { CartService } from 'src/cart/cart.service';
 
 @Injectable()
 export class AuthService {
     constructor(
         private readonly prismaService: PrismaService,
         private jwt: JwtService,
-        private config: ConfigService,
-        private cartService: CartService
+        private config: ConfigService
     ) { }
 
     async register(registerDto: any) {
         try {
-
             const { email, username, password } = registerDto;
 
             const hashedPassword = await argon.hash(password);
@@ -27,7 +24,7 @@ export class AuthService {
                     email,
                     username,
                     hashed_password: hashedPassword,
-                    Cart: {
+                    Carts: {
                         create: {}
                     }
                 }
@@ -36,24 +33,22 @@ export class AuthService {
             const token = this.signToken(newUser.id, newUser.email);
 
             return token;
-
         } catch (error) {
-            console.log(error.code);
-            if (error instanceof PrismaClientKnownRequestError) {
-                if (error.code === 'P2002') {
+            if (!(error instanceof PrismaClientKnownRequestError)) {
+                throw error;
+            }
 
-                    if (error.meta.target[0] === 'email') {
-                        throw new ConflictException('Email already exists');
-                    }
+            if (error.code === 'P2002') {
+                if (error.meta.target[0] === 'email') {
+                    throw new ConflictException('Email already exists');
+                }
 
-                    if (error.meta.target[0] === 'username') {
-                        throw new ConflictException('Username already exists');
-                    }
+                if (error.meta.target[0] === 'username') {
+                    throw new ConflictException('Username already exists');
                 }
             }
 
-            throw new Error(error);
-
+            throw error;
         }
     }
 

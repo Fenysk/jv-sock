@@ -6,85 +6,178 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class CartService {
     constructor(private readonly prismaService: PrismaService) { }
 
-    async getMyCart(user_id: number) {
-        const cart = await this.prismaService.articlesOnCart.findMany({
-            where: { cart_id: user_id },
-            include: { Article: true }
-        });
+    async createNewCart(user_id: number) {
+        try {
+            // Get id of the active cart's user
+            const activeCart = await this.getMyActiveCart(user_id);
 
-        if (!cart) {
-            throw new NotFoundException('Cart not found');
+            // Deactivate active cart
+            const deactivatedCart = await this.desactivateCart(activeCart.id);
+
+            // Create new cart
+            const newCart = await this.prismaService.cart.create({ data: { user_id } });
+
+            return newCart;
+        } catch (error) {
+            if (!(error instanceof PrismaClientKnownRequestError)) {
+                throw error;
+            }
+
+            if (error.code === 'P2025') {
+                throw new NotFoundException('Cart not found');
+            }
+
+            throw error;
         }
-
-        return cart;
     }
 
-    async addToCart(user_id: number, article_id: number) {
 
-        // Check if article exists
-        const article = await this.prismaService.article.findFirst({
-            where: { id: article_id },
-            include: { Sale: true }
-        });
 
-        if (!article) {
-            throw new NotFoundException('Article not found');
-        }
-
-        // Check if article has no sale
-        if (article.Sale) {
-            throw new ConflictException('Article is already sold');
-        }
-
-        // Add article to cart
+    async switchCart(user_id: number, cart_id: number) {
         try {
-            const newArticleOnCart = await this.prismaService.articlesOnCart.create({
+            // Get id of the active cart's user
+            const activeCart = await this.getMyActiveCart(user_id);
+
+            // Deactivate active cart
+            const deactivatedCart = await this.desactivateCart(activeCart.id);
+
+            // Activate new cart
+            const activatedCart = await this.prismaService.cart.update({
+                where: {
+                    id: cart_id
+                },
                 data: {
-                    cart_id: user_id,
-                    article_id,
+                    is_active: true
                 }
             });
 
-            return newArticleOnCart;
+            return activatedCart;
         } catch (error) {
             if (!(error instanceof PrismaClientKnownRequestError)) {
-                throw new Error('Impossible to add article to cart');
+                throw error;
+            }
+
+            if (error.code === 'P2025') {
+                throw new NotFoundException('Cart not found');
+            }
+
+            throw error;
+        }
+    }
+
+
+
+    async desactivateCart(cart_id: number) {
+        try {
+            const desactivatedCart = await this.prismaService.cart.update({
+                where: {
+                    id: cart_id
+                },
+                data: {
+                    is_active: false
+                }
+            });
+
+            return desactivatedCart;
+        } catch (error) {
+            if (!(error instanceof PrismaClientKnownRequestError)) {
+                throw error;
+            }
+
+            if (error.code === 'P2025') {
+                throw new NotFoundException('Cart not found');
+            }
+
+            throw error;
+        }
+    }
+
+
+
+    async getMyActiveCart(user_id: number) {
+        try {
+            const cart = await this.prismaService.cart.findFirst({
+                where: {
+                    user_id,
+                    is_active: true
+                },
+                include: {
+                    ArticlesOnCart: {
+                        include: {
+                            Article: true
+                        }
+                    }
+                }
+            });
+
+            return cart;
+        } catch (error) {
+            if (!(error instanceof PrismaClientKnownRequestError)) {
+                throw error;
+            }
+
+            if (error.code === 'P2025') {
+                throw new NotFoundException('Cart not found');
+            }
+
+            throw error;
+        }
+    }
+
+
+
+    async addToCart(user_id: number, article_id: number) {
+        try {
+            // Get id of the active cart's user
+            const activeCart = await this.getMyActiveCart(user_id);
+
+            // Add article to cart
+            const articleAddedToCart = await this.prismaService.articlesOnCart.create({
+                data: {
+                    cart_id: activeCart.id,
+                    article_id
+                }
+            });
+
+            return articleAddedToCart;
+        } catch (error) {
+            if (!(error instanceof PrismaClientKnownRequestError)) {
+                throw error;
+            }
+
+            if (error.code === 'P2025') {
+                throw new NotFoundException('Cart not found');
             }
 
             if (error.code === 'P2002') {
                 throw new ConflictException('Article already in cart');
             }
 
-            if (error.code === 'P2025') {
-                throw new NotFoundException('Cart not found');
-            }
-
             throw error;
         }
     }
+
+
 
     async removeFromCart(user_id: number, article_id: number) {
-
-        // Check if article is in cart's user
-        const articleOnCart = await this.prismaService.articlesOnCart.findUnique({
-            where: {
-                cart_id: user_id,
-                article_id
-            }
-        });
-
-        if (!articleOnCart) {
-            throw new NotFoundException('Article not found in cart');
-        }
-
-        // Remove article from cart
         try {
-            const deletedArticleOnCart = await this.prismaService.articlesOnCart.delete({ where: { article_id } });
+            // Get id of the active cart's user
+            const activeCart = await this.getMyActiveCart(user_id);
 
-            return deletedArticleOnCart;
+            // Remove article from cart
+            const articleRemovedFromCart = await this.prismaService.articlesOnCart.delete({
+                where: {
+                    cart_id_article_id: {
+                        cart_id: activeCart.id,
+                        article_id
+                    }
+                }
+            });
+
+            return articleRemovedFromCart;
         } catch (error) {
             if (!(error instanceof PrismaClientKnownRequestError)) {
-                throw new Error('Impossible to remove article from cart');
+                throw error;
             }
 
             if (error.code === 'P2025') {
@@ -94,4 +187,5 @@ export class CartService {
             throw error;
         }
     }
+
 }

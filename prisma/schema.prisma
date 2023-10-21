@@ -17,29 +17,32 @@ model User {
   roles           String[] @default(["USER"])
 
   Articles Article[] @relation("User_1-N_Article")
-  Sales    Sale[]    @relation("Sale_1-N_Article")
-
-  Cart Cart? @relation("Cart_0/1-1_User")
+  Sales    Sale[]    @relation("User_1-N_Sale")
+  Carts    Cart[]    @relation("User_1-N_Cart")
 }
 
 model Cart {
-  id         Int      @id
+  id         Int      @id @default(autoincrement())
+  user_id    Int
+  is_active  Boolean  @default(true)
   created_at DateTime @default(now())
   updated_at DateTime @default(now()) @updatedAt
 
   ArticlesOnCart ArticlesOnCart[] @relation("Cart_1-N_ArticlesOnCart")
-  User           User             @relation("Cart_0/1-1_User", fields: [id], references: [id], onDelete: Cascade)
+  User           User             @relation("User_1-N_Cart", fields: [user_id], references: [id], onDelete: Cascade)
 }
 
 model ArticlesOnCart {
   id         Int      @id @default(autoincrement())
   cart_id    Int
-  article_id Int      @unique
+  article_id Int
   created_at DateTime @default(now())
   updated_at DateTime @default(now()) @updatedAt
 
   Cart    Cart    @relation("Cart_1-N_ArticlesOnCart", fields: [cart_id], references: [id])
   Article Article @relation("Article_1-N_ArticlesOnCart", fields: [article_id], references: [id])
+
+  @@unique([cart_id, article_id])
 }
 
 model Game {
@@ -86,7 +89,7 @@ model Sale {
   updated_at   DateTime @default(now()) @updatedAt
 
   Article Article @relation("Sale_0/1-1_Article", fields: [article_id], references: [id], onDelete: Cascade)
-  User    User    @relation("Sale_1-N_Article", fields: [user_id], references: [id], onDelete: Cascade)
+  User    User    @relation("User_1-N_Sale", fields: [user_id], references: [id], onDelete: Cascade)
 
   @@unique([article_id])
 }
