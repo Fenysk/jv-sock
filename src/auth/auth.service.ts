@@ -19,15 +19,34 @@ export class AuthService {
 
             const hashedPassword = await argon.hash(password);
 
-            const newUser = await this.prismaService.user.create({
-                data: {
-                    email,
-                    username,
-                    hashed_password: hashedPassword,
-                    Carts: {
-                        create: {}
+            // Transaction to avoid creating a user without an active cart
+            const newUser = await this.prismaService.$transaction(async (prisma) => {
+                // Create user and cart
+                const createdUser = await prisma.user.create({
+                    data: {
+                        email,
+                        username,
+                        hashed_password: hashedPassword,
+                        Carts: {
+                            create: {}
+                        }
+                    },
+                    include: {
+                        Carts: true
                     }
-                }
+                });
+
+                // Activate user's cart
+                const updatedUser = await prisma.user.update({
+                    where: {
+                        id: createdUser.id
+                    },
+                    data: {
+                        active_cart_id: createdUser.Carts[0].id
+                    }
+                });
+
+                return updatedUser;
             });
 
             const token = this.signToken(newUser.id, newUser.email);

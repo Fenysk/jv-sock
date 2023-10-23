@@ -15,6 +15,7 @@ model User {
   created_at      DateTime @default(now())
   updated_at      DateTime @default(now()) @updatedAt
   roles           String[] @default(["USER"])
+  active_cart_id  Int?     @unique
 
   Purchases Purchase[] @relation("User_1-N_Purchase")
   Articles  Article[]  @relation("User_1-N_Article")
@@ -25,7 +26,6 @@ model User {
 model Cart {
   id         Int      @id @default(autoincrement())
   user_id    Int
-  is_active  Boolean  @default(true)
   created_at DateTime @default(now())
   updated_at DateTime @default(now()) @updatedAt
 

@@ -8,25 +8,24 @@ export class CartService {
 
     async createNewCart(user_id: number) {
         try {
-            // Get id of the active cart's user
-            const activeCart = await this.getMyActiveCart(user_id);
+            // Transaction to avoid creating a new cart without deactivating the active one
+            const newCart = await this.prismaService.$transaction(async (prisma) => {
+                // Create a new cart for the user
+                const createdCart = await prisma.cart.create({ data: { user_id } });
 
-            // Deactivate active cart
-            const deactivatedCart = await this.desactivateCart(activeCart.id);
+                // Switch active cart to the new one
+                const updatedUser = await prisma.user.update({
+                    where: { id: user_id },
+                    data: { active_cart_id: createdCart.id }
+                });
 
-            // Create new cart
-            const newCart = await this.prismaService.cart.create({ data: { user_id } });
+                return createdCart;
+            });
 
             return newCart;
         } catch (error) {
-            if (!(error instanceof PrismaClientKnownRequestError)) {
-                throw error;
-            }
-
-            if (error.code === 'P2025') {
-                throw new NotFoundException('Cart not found');
-            }
-
+            if (!(error instanceof PrismaClientKnownRequestError)) { throw error; }
+            if (error.code === 'P2025') { throw new NotFoundException('Cart not found'); }
             throw error;
         }
     }
@@ -35,59 +34,18 @@ export class CartService {
 
     async switchCart(user_id: number, cart_id: number) {
         try {
-            // Get id of the active cart's user
-            const activeCart = await this.getMyActiveCart(user_id);
-
-            // Deactivate active cart
-            const deactivatedCart = await this.desactivateCart(activeCart.id);
-
-            // Activate new cart
-            const activatedCart = await this.prismaService.cart.update({
+            const updatedUser = await this.prismaService.user.update({
                 where: {
-                    id: cart_id
+                    id: user_id,
+                    Carts: { some: { id: cart_id } }
                 },
-                data: {
-                    is_active: true
-                }
+                data: { active_cart_id: cart_id }
             });
 
-            return activatedCart;
+            return updatedUser;
         } catch (error) {
-            if (!(error instanceof PrismaClientKnownRequestError)) {
-                throw error;
-            }
-
-            if (error.code === 'P2025') {
-                throw new NotFoundException('Cart not found');
-            }
-
-            throw error;
-        }
-    }
-
-
-
-    async desactivateCart(cart_id: number) {
-        try {
-            const desactivatedCart = await this.prismaService.cart.update({
-                where: {
-                    id: cart_id
-                },
-                data: {
-                    is_active: false
-                }
-            });
-
-            return desactivatedCart;
-        } catch (error) {
-            if (!(error instanceof PrismaClientKnownRequestError)) {
-                throw error;
-            }
-
-            if (error.code === 'P2025') {
-                throw new NotFoundException('Cart not found');
-            }
-
+            if (!(error instanceof PrismaClientKnownRequestError)) { throw error; }
+            if (error.code === 'P2025') { throw new NotFoundException('Cart not found'); }
             throw error;
         }
     }
@@ -96,30 +54,23 @@ export class CartService {
 
     async getMyActiveCart(user_id: number) {
         try {
-            const cart = await this.prismaService.cart.findFirst({
-                where: {
-                    user_id,
-                    is_active: true
-                },
-                include: {
-                    ArticlesOnCart: {
-                        include: {
-                            Article: true
-                        }
-                    }
-                }
+            // Get cart of the user in function of the active cart id
+            const user = await this.prismaService.user.findUnique({
+                where: { id: user_id },
+                select: { active_cart_id: true }
             });
 
-            return cart;
+            if (!user) { throw new NotFoundException('User not found'); }
+
+            const userCart = await this.prismaService.cart.findUnique({
+                where: { id: user.active_cart_id },
+                include: { ArticlesOnCart: { include: { Article: true } } }
+            });
+
+            return userCart;
         } catch (error) {
-            if (!(error instanceof PrismaClientKnownRequestError)) {
-                throw error;
-            }
-
-            if (error.code === 'P2025') {
-                throw new NotFoundException('Cart not found');
-            }
-
+            if (!(error instanceof PrismaClientKnownRequestError)) { throw error; }
+            if (error.code === 'P2025') { throw new NotFoundException('Cart not found'); }
             throw error;
         }
     }
