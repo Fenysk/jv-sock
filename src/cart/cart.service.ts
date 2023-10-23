@@ -83,7 +83,12 @@ export class CartService {
             const activeCart = await this.getMyActiveCart(user_id);
 
             // Check if article is available
-            const article = await this.prismaService.article.findFirst({ where: { id: article_id } });
+            const article = await this.prismaService.article.findFirst({
+                where: {
+                    id: article_id,
+                    Sale: { is: null }
+                }
+            });
 
             if (!article) {
                 throw new NotFoundException('Article not found');

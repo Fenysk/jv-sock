@@ -21,6 +21,7 @@ model User {
   Articles  Article[]  @relation("User_1-N_Article")
   Sales     Sale[]     @relation("User_1-N_Sale")
   Carts     Cart[]     @relation("User_1-N_Cart")
+  Orders    Order[]    @relation("User_1-N_Order")
 }
 
 model Cart {
@@ -31,6 +32,35 @@ model Cart {
 
   ArticlesOnCart ArticlesOnCart[] @relation("Cart_1-N_ArticlesOnCart")
   User           User             @relation("User_1-N_Cart", fields: [user_id], references: [id], onDelete: Cascade)
+  Order          Order?           @relation("Order_0/1-1_Cart")
+}
+
+model Order {
+  id         Int      @id @default(autoincrement())
+  user_id    Int
+  cart_id    Int      @unique
+  created_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
+
+  Cart  Cart   @relation("Order_0/1-1_Cart", fields: [cart_id], references: [id], onDelete: Cascade)
+  User  User   @relation("User_1-N_Order", fields: [user_id], references: [id], onDelete: Cascade)
+  Sales Sale[] @relation("Order_0/1-N_Sale")
+}
+
+model Sale {
+  id           Int      @id @default(autoincrement())
+  user_id      Int
+  article_id   Int
+  order_id     Int?
+  solded_price Float
+  created_at   DateTime @default(now())
+  updated_at   DateTime @default(now()) @updatedAt
+
+  Article Article @relation("Sale_0/1-1_Article", fields: [article_id], references: [id], onDelete: Cascade)
+  User    User    @relation("User_1-N_Sale", fields: [user_id], references: [id], onDelete: Cascade)
+  Order   Order?  @relation("Order_0/1-N_Sale", fields: [order_id], references: [id])
+
+  @@unique([article_id])
 }
 
 model ArticlesOnCart {
@@ -81,20 +111,6 @@ model Article {
   ArticlesOnCart ArticlesOnCart[] @relation("Article_1-N_ArticlesOnCart")
 
   @@unique([purchase_id])
-}
-
-model Sale {
-  id           Int      @id @default(autoincrement())
-  user_id      Int
-  article_id   Int
-  solded_price Float
-  created_at   DateTime @default(now())
-  updated_at   DateTime @default(now()) @updatedAt
-
-  Article Article @relation("Sale_0/1-1_Article", fields: [article_id], references: [id], onDelete: Cascade)
-  User    User    @relation("User_1-N_Sale", fields: [user_id], references: [id], onDelete: Cascade)
-
-  @@unique([article_id])
 }
 
 model Game {
