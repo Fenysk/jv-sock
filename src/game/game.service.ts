@@ -58,10 +58,12 @@ export class GameService {
         // Pour chaque jeu de l'inventaire
         gamesWithStock.forEach(game => {
             // On garde uniquement l'inventaire des jeux avec achats qui n'ont pas été vendus
-            game.Articles = game.Articles.filter(article => !article.Sale);
+
+            // Keep only purchases with article and no sale
+            game.Purchases = game.Purchases.filter(purchase => purchase.Article && !purchase.Article.Sale);
 
             // Pour chaque achat du jeu non vendu
-            game.Articles.forEach(article => {
+            game.Purchases.forEach(article => {
 
                 // On crée un objet jeu non vendu
                 const gameNotSaled = {
@@ -79,7 +81,7 @@ export class GameService {
 
                 // On supprime les propriétés inutiles
                 delete gameNotSaled.id;
-                delete gameNotSaled.Articles;
+                delete gameNotSaled.Purchases;
                 delete gameNotSaled.Sale;
                 delete gameNotSaled.quantity;
 
