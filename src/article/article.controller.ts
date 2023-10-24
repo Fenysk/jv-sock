@@ -5,17 +5,16 @@ import { JwtGuard, RolesGuard } from 'src/auth/guard';
 import { GetUser, Roles } from 'src/auth/decorator';
 import { Role } from 'src/auth/enums/role.enum';
 
-@UseGuards(JwtGuard, RolesGuard)
 @Controller('api/article')
 export class ArticleController {
     constructor(private readonly articleService: ArticleService) { }
 
-    @Roles(Role.ADMIN)
-    @Get('get/all')
+    @Get('get/available')
     getAllArticles(@Query('name') name?: string) {
-        return this.articleService.getAllArticles(name);
+        return this.articleService.getAllAvailableArticles(name);
     }
 
+    @UseGuards(JwtGuard, RolesGuard)
     @Roles(Role.SALLER)
     @Get('get/mine')
     getMyArticles(
@@ -25,6 +24,7 @@ export class ArticleController {
         return this.articleService.getMyArticles(user_id, name);
     }
 
+    @UseGuards(JwtGuard, RolesGuard)
     @Roles(Role.SALLER)
     @Get('get/:id')
     getArticleById(
@@ -34,6 +34,7 @@ export class ArticleController {
         return this.articleService.getArticleById(user_id, Number(id));
     }
 
+    @UseGuards(JwtGuard, RolesGuard)
     @Roles(Role.SALLER)
     @Post('create')
     createArticle(
@@ -43,6 +44,7 @@ export class ArticleController {
         return this.articleService.createArticle(user_id, article);
     }
 
+    @UseGuards(JwtGuard, RolesGuard)
     @Roles(Role.SALLER)
     @Put('update/:id')
     updateArticle(
@@ -53,6 +55,7 @@ export class ArticleController {
         return this.articleService.updateArticle(user_id, Number(article_id), data);
     }
 
+    @UseGuards(JwtGuard, RolesGuard)
     @Roles(Role.SALLER)
     @Delete('delete/:id')
     deleteArticle(

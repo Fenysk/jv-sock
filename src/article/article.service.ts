@@ -6,7 +6,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 export class ArticleService {
     constructor(private readonly prismaService: PrismaService) { }
 
-    async getAllArticles(name?: string) {
+    async getAllAvailableArticles(name?: string) {
         const articles = await this.prismaService.article.findMany({
             where: {
                 Purchase: {
@@ -16,7 +16,8 @@ export class ArticleService {
                             mode: 'insensitive'
                         }
                     }
-                }
+                },
+                Sale: null
             },
             include: {
                 Purchase: {
@@ -24,13 +25,17 @@ export class ArticleService {
                         Game: true
                     }
                 },
-                Sale: true
             }
         });
 
         if (!articles.length) {
             throw new NotFoundException('No articles found');
         }
+
+        articles.forEach(article => {
+            delete article.Purchase.purchased_price;
+            delete article.Purchase.origin;
+        });
 
         return articles;
     }
