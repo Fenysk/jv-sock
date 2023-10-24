@@ -70,7 +70,7 @@ export class ArticleService {
         return articles;
     }
 
-    async getArticleById(user_id: number, id: number) {
+    async getMyArticleById(user_id: number, id: number) {
         const article = await this.prismaService.article.findUnique({
             where: { id },
             include: {
@@ -89,6 +89,26 @@ export class ArticleService {
 
         if (article.user_id !== user_id) {
             throw new ForbiddenException('You are not allowed to see this article');
+        }
+
+        return article;
+    }
+
+    async getArticleById(id: number) {
+        const article = await this.prismaService.article.findUnique({
+            where: { id },
+            include: {
+                Purchase: {
+                    include: {
+                        Game: true
+                    }
+                },
+                Sale: true
+            }
+        });
+
+        if (!article) {
+            throw new NotFoundException('No article found');
         }
 
         return article;

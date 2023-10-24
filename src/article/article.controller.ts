@@ -23,15 +23,22 @@ export class ArticleController {
     ) {
         return this.articleService.getMyArticles(user_id, name);
     }
-
+    
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(Role.SALLER)
-    @Get('get/:id')
-    getArticleById(
+    @Get('get/mine/:id')
+    getMyArticleById(
         @GetUser('id') user_id: number,
         @Param('id') id: string
     ) {
-        return this.articleService.getArticleById(user_id, Number(id));
+        return this.articleService.getMyArticleById(user_id, Number(id));
+    }
+
+    @Get('get/:id')
+    getArticleById(
+        @Param('id') id: string
+    ) {
+        return this.articleService.getArticleById(Number(id));
     }
 
     @UseGuards(JwtGuard, RolesGuard)

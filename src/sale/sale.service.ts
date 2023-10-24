@@ -109,7 +109,7 @@ export class SaleService {
 
     async createSale(user_id: number, data: any) {
         
-        const article = await this.articleService.getArticleById(user_id, data.article_id);
+        const article = await this.articleService.getMyArticleById(user_id, data.article_id);
 
         if (!article) {
             throw new NotFoundException('No article found');
