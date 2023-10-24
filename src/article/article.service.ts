@@ -25,6 +25,17 @@ export class ArticleService {
                         Game: true
                     }
                 },
+                User: {
+                    select: {
+                        id: true,
+                        username: true,
+                        Articles: {
+                            where: {
+                                Sale: null
+                            }
+                        }
+                    }
+                }
             }
         });
 
@@ -103,7 +114,18 @@ export class ArticleService {
                         Game: true
                     }
                 },
-                Sale: true
+                Sale: true,
+                User: {
+                    select: {
+                        id: true,
+                        username: true,
+                        Articles: {
+                            where: {
+                                Sale: null
+                            }
+                        }
+                    }
+                }
             }
         });
 
