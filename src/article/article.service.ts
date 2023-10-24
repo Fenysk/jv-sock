@@ -29,6 +29,7 @@ export class ArticleService {
                     select: {
                         id: true,
                         username: true,
+                        avatar_url: true,
                         Articles: {
                             where: {
                                 Sale: null
@@ -119,6 +120,7 @@ export class ArticleService {
                     select: {
                         id: true,
                         username: true,
+                        avatar_url: true,
                         Articles: {
                             where: {
                                 Sale: null
