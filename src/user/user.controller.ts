@@ -32,6 +32,11 @@ export class UserController {
         return await this.userService.updateUserById(user_id, data);
     }
 
+    @Put('update/me/password')
+    async updateMyPassword(@GetUser('id') user_id: number, @Body() data: any) {
+        return await this.userService.updateMyPassword(user_id, data.password);
+    }
+
     @Roles(Role.ADMIN)
     @Put('update/:id')
     async updateUserById(@Param('id') id: string, @Body() data: any) {

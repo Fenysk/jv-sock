@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { PrismaService } from 'src/prisma/prisma.service';
+import * as argon from 'argon2';
 
 @Injectable()
 export class UserService {
@@ -72,6 +73,35 @@ export class UserService {
                     }
                 }
             }
+
+            throw new Error(error);
+
+        }
+    }
+
+    async updateMyPassword(id: number, password: any) {
+        try {
+            
+            const hashed_password = await argon.hash(password);
+
+            const user = await this.prismaService.user.update({
+                where: {
+                    id
+                },
+                data: {
+                    hashed_password
+                }
+            });
+
+            if (!user) {
+                throw new NotFoundException('User not found');
+            }
+
+            delete user.hashed_password;
+
+            return user;
+
+        } catch (error) {
 
             throw new Error(error);
 
