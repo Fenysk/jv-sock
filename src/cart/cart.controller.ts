@@ -5,7 +5,7 @@ import { JwtGuard, RolesGuard } from 'src/auth/guard';
 import { Role } from 'src/auth/enums/role.enum';
 
 @UseGuards(JwtGuard, RolesGuard)
-@Controller('api/cart')
+@Controller('cart')
 export class CartController {
     constructor(private readonly cartService: CartService) { }
 

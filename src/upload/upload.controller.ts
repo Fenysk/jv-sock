@@ -5,7 +5,7 @@ import { Roles } from 'src/auth/decorator';
 import { Role } from 'src/auth/enums/role.enum';
 import { JwtGuard, RolesGuard } from 'src/auth/guard';
 
-@Controller('api/files')
+@Controller('files')
 export class UploadController {
 
     @Get(':path')

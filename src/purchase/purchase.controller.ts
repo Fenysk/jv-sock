@@ -6,7 +6,7 @@ import { GetUser, Roles } from 'src/auth/decorator';
 import { Role } from 'src/auth/enums/role.enum';
 
 @UseGuards(JwtGuard, RolesGuard)
-@Controller('api/purchase')
+@Controller('purchase')
 export class PurchaseController {
     constructor(private readonly purchaseService: PurchaseService) { }
 

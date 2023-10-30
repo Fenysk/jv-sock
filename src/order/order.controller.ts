@@ -5,7 +5,7 @@ import { GetUser, Roles } from 'src/auth/decorator';
 import { Role } from 'src/auth/enums/role.enum';
 
 @UseGuards(JwtGuard, RolesGuard)
-@Controller('api/order')
+@Controller('order')
 export class OrderController {
     constructor(private readonly orderService: OrderService) { }
 

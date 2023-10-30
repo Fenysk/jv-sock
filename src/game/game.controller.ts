@@ -5,7 +5,7 @@ import { JwtGuard, RolesGuard } from 'src/auth/guard';
 import { Roles } from 'src/auth/decorator';
 import { Role } from 'src/auth/enums/role.enum';
 
-@Controller('api/game')
+@Controller('game')
 export class GameController {
     constructor(private readonly gameService: GameService) { }
 

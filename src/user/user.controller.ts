@@ -6,7 +6,7 @@ import { JwtGuard, RolesGuard } from 'src/auth/guard';
 import { Role } from 'src/auth/enums/role.enum';
 
 @UseGuards(JwtGuard, RolesGuard)
-@Controller('api/user')
+@Controller('user')
 export class UserController {
     constructor(private readonly userService: UserService) { }
 
