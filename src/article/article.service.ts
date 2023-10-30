@@ -66,6 +66,42 @@ export class ArticleService {
                             mode: 'insensitive'
                         }
                     }
+                },
+                Sale: null
+            },
+            include: {
+                Purchase: {
+                    include: {
+                        Game: true
+                    }
+                },
+            },
+            orderBy: {
+                created_at: 'desc'
+            }
+        });
+
+        if (!articles.length) {
+            throw new NotFoundException('No user articles found');
+        }
+
+        return articles;
+    }
+
+    async getMySoldedArticles(user_id: number, name?: string) {
+        const articles = await this.prismaService.article.findMany({
+            where: {
+                user_id: user_id,
+                Purchase: {
+                    Game: {
+                        name: {
+                            contains: name,
+                            mode: 'insensitive'
+                        }
+                    }
+                },
+                Sale: {
+                    isNot: null
                 }
             },
             include: {
@@ -75,6 +111,9 @@ export class ArticleService {
                     }
                 },
                 Sale: true
+            },
+            orderBy: {
+                created_at: 'desc'
             }
         });
 

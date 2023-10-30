@@ -23,6 +23,16 @@ export class ArticleController {
     ) {
         return this.articleService.getMyArticles(user_id, name);
     }
+
+    @UseGuards(JwtGuard, RolesGuard)
+    @Roles(Role.SALLER)
+    @Get('get/mine/solded')
+    getMySoldedArticles(
+        @GetUser('id') user_id: number,
+        @Query('name') name?: string
+    ) {
+        return this.articleService.getMySoldedArticles(user_id, name);
+    }
     
     @UseGuards(JwtGuard, RolesGuard)
     @Roles(Role.SALLER)
