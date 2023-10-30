@@ -26,7 +26,7 @@ export class UploadController {
                 const fileExt = file.originalname.split('.')[1]
                 const fileDate = new Date().toISOString().replace(/:/g, '-')
 
-                if (!file.mimetype.match(/\/(jpg|jpeg|png|gif)$/)) {
+                if (!file.mimetype.match(/\/(jpg|jpeg|png|gif|webp)$/)) {
                     fileError = new NotAcceptableException('Only image files are allowed!')
                 }
 
