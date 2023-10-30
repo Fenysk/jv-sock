@@ -37,6 +37,9 @@ export class ArticleService {
                         }
                     }
                 }
+            },
+            orderBy: {
+                created_at: 'desc'
             }
         });
 
