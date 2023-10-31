@@ -26,6 +26,15 @@ export class PurchaseController {
     }
 
     @Roles(Role.SALLER)
+    @Get('get/mine/solded')
+    getMySoldedPurchases(
+        @GetUser('id') user_id: number,
+        @Query('name') name?: string
+    ) {
+        return this.purchaseService.getMySoldedPurchases(user_id, name);
+    }
+
+    @Roles(Role.SALLER)
     @Get('get/:id')
     getPurchaseById(
         @GetUser('id') user_id: number,
