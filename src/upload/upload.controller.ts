@@ -14,7 +14,7 @@ export class UploadController {
     }
 
     @UseGuards(JwtGuard, RolesGuard)
-    @Roles(Role.ADMIN)
+    @Roles(Role.USER)
     @Post('upload/image')
     @UseInterceptors(FileInterceptor('file', {
         storage: diskStorage({
